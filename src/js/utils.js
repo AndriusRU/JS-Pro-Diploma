@@ -24,6 +24,32 @@
  * */
 export function calcTileType(index, boardSize) {
   // TODO: ваш код будет тут
+  const boardFullSize = boardSize ** 2;
+  const normIndex = index + 1;
+  let result = '';
+  // если номера верхние, то top
+  if (normIndex <= boardSize) {
+    result += 'top-';
+  }
+  // если номера нижние, то bottom
+  if (normIndex > boardFullSize - boardSize) {
+    result += 'bottom-';
+  }
+  // если номера левые в столбце, то left
+  // если номера правые в столбце, то right
+  // в противном случае удаляем дефис из переменной
+  if (Number.isInteger((normIndex - 1) / boardSize)) {
+    result += 'left';
+  } else if (Number.isInteger(normIndex / boardSize)) {
+    result += 'right';
+  } else {
+    result = result.slice(0, -1);
+  }
+
+  if (result !== '') {
+    return result;
+  }
+
   return 'center';
 }
 
