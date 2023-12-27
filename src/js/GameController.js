@@ -1,5 +1,4 @@
 import themes from './themes';
-import GamePlay from './GamePlay';
 
 export default class GameController {
   constructor(gamePlay, stateService) {
@@ -10,7 +9,7 @@ export default class GameController {
   init() {
     // TODO: add event listeners to gamePlay events
     // TODO: load saved stated from stateService
-    this.gamePlay.drawUi(themes[1]);
+    this.gamePlay.drawUi(themes[2]);
   }
 
   onCellClick(index) {
