@@ -1,7 +1,7 @@
 import themes from './themes';
 import { generateTeam, getAllowedCoordinates } from './generators';
 import Team from './Team';
-import GamePlay from './GamePlay';
+import GameState from './GameState';
 
 export default class GameController {
   constructor(gamePlay, stateService) {
@@ -9,6 +9,7 @@ export default class GameController {
     this.stateService = stateService;
     this.playerTeam = generateTeam(new Team().playerTeam, 1, 3);
     this.opponentTeam = generateTeam(new Team().opponentTeam, 1, 3);
+    this.gameState = new GameState(this.playerTeam, this.opponentTeam);
   }
 
   init() {
@@ -18,10 +19,30 @@ export default class GameController {
     this.gamePlay.redrawPositions([...this.playerTeam, ...this.opponentTeam]);
     this.enterOnCell();
     this.leaveOnCell();
+    this.clickOnCell();
   }
 
   onCellClick(index) {
     // TODO: react to click
+    // Clear 'selected-yellow' when click on myself
+    if (this.gameState.selectedCharacter && this.gameState.selectedCharacter.position === index) {
+      this.gamePlay.deselectCell(index);
+      this.gameState.selectedCharacter = null;
+    } else {
+      // Clear 'selected-yellow' when click on another field with Character of Player
+      const isCharacter = this.hasCharacter(index);
+      const person = this.getCharacter(index);
+      if (isCharacter) {
+        if (person.character.isGoodCharacter) {
+          this.gameState.selectedCharacter = person;
+          this.gamePlay.cells.forEach((element) => {
+            element.classList.remove(...Array.from(element.classList)
+              .filter((item) => item.startsWith('selected')));
+          });
+          this.gamePlay.selectCell(index);
+        }
+      }
+    }
   }
 
   onCellEnter(index) {
@@ -58,5 +79,9 @@ export default class GameController {
 
   leaveOnCell() {
     this.gamePlay.addCellLeaveListener(this.onCellLeave.bind(this));
+  }
+
+  clickOnCell() {
+    this.gamePlay.addCellClickListener(this.onCellClick.bind(this));
   }
 }
