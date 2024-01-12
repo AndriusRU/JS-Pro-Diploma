@@ -2,6 +2,7 @@ import themes from './themes';
 import { generateTeam, getAllowedCoordinates } from './generators';
 import Team from './Team';
 import GameState from './GameState';
+import GamePlay from './GamePlay';
 
 export default class GameController {
   constructor(gamePlay, stateService) {
@@ -40,7 +41,11 @@ export default class GameController {
               .filter((item) => item.startsWith('selected')));
           });
           this.gamePlay.selectCell(index);
+        } else {
+          GamePlay.showMessage('Это игрок из чужой команды !!!');
         }
+      } else {
+        GamePlay.showMessage('Это пустая клетка !!!');
       }
     }
   }
