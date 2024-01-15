@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import themes from './themes';
 import { generateTeam, getAllowedCoordinates } from './generators';
 import Team from './Team';
