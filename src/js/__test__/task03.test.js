@@ -14,12 +14,14 @@ let gController = null;
 test('Show ToolTip for character in cell', () => {
   /*
   const stringContainer = '<div id=game-container></div>';
-  const html = parse(stringContainer);
-  // const container = html.body;
-  const container = html;
+  const html = new DOMParser().parseFromString(stringContainer, "text/html");
+  //const html = parse(stringContainer);
+  //const container = html.body;
+  const container = html.getElementById('game-container');
   gPlay = new GamePlay();
   gPlay.bindToDOM(container);
-  gStateService = new GameStateService(Storage.prototype);
+  const spy = jest.spyOn(Storage.prototype, 'setItem');
+  gStateService = new GameStateService(spy);
   gController = new GameController(gPlay, gStateService);
   gController.init();
   const elem = jest.fn();

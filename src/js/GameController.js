@@ -5,6 +5,8 @@ import { generateTeam, getAllowedCoordinates } from './generators';
 import Team from './Team';
 import GameState from './GameState';
 import GamePlay from './GamePlay';
+import cursors from './cursors';
+import { possibleAttack, possibleMove } from './utils';
 
 export default class GameController {
   constructor(gamePlay, stateService) {
@@ -43,11 +45,21 @@ export default class GameController {
               .filter((item) => item.startsWith('selected')));
           });
           this.gamePlay.selectCell(index);
-        } else {
-          GamePlay.showMessage('Это игрок из чужой команды !!!');
+          this.gamePlay.setCursor(cursors.pointer);
         }
-      } else {
-        GamePlay.showMessage('Это пустая клетка !!!');
+      }
+
+      // Если можем переместить персонажа на пустую клетку
+      if (this.gameState.selectedCharacter && !isCharacter) {
+        const moveDistance = this.gameState.selectedCharacter.character.moveCell;
+        const positionCharacter = this.gameState.selectedCharacter.position;
+        const posMove = possibleMove(positionCharacter, index, moveDistance);
+        if (posMove) {
+          this.gameState.playerTeam = this.filterTeam(this.gameState.selectedCharacter);
+          this.gameState.playerTeam = [...this.gameState.playerTeam, this.gameState.selectedCharacter];
+          this.gameState.selectedCharacter.position = index;
+          this.endMove();
+        }
       }
     }
   }
@@ -60,10 +72,32 @@ export default class GameController {
       const message = `\u{1F396}${person.character.level} \u{1F5E1}${person.character.attack} \u{1F6E1}${person.character.defence} \u{1F493}${person.character.health}`;
       this.gamePlay.showCellTooltip(message, index);
     }
+    // Выбран персонаж и ячейка назначения пустая
+    if (this.gameState.selectedCharacter && !isCharacter) {
+      const moveDistance = this.gameState.selectedCharacter.character.moveCell;
+      if (possibleMove(this.gameState.selectedCharacter.position, index, moveDistance)) {
+        this.gamePlay.selectCell(index, 'green');
+        this.gamePlay.setCursor(cursors.pointer);
+      }
+    }
+    // Выбран персонаж и в новой клетке находится персонаж противоположной команды
+    if (isCharacter) {
+      if (this.gameState.selectedCharacter && !person.character.isGoodCharacter) {
+        const attackDistance = this.gameState.selectedCharacter.character.attackCell;
+        if (possibleAttack(this.gameState.selectedCharacter.position, index, attackDistance)) {
+          this.gamePlay.selectCell(index, 'red');
+          this.gamePlay.setCursor(cursors.crosshair);
+        } else {
+          this.gamePlay.setCursor(cursors.notallowed);
+        }
+      }
+    }
   }
 
   onCellLeave(index) {
     // TODO: react to mouse leave
+    this.gamePlay.setCursor(cursors.pointer);
+    this.gamePlay.cells.forEach((cell) => cell.classList.remove('selected-green', 'selected-red'));
     this.gamePlay.hideCellTooltip(index);
   }
 
@@ -90,5 +124,30 @@ export default class GameController {
 
   clickOnCell() {
     this.gamePlay.addCellClickListener(this.onCellClick.bind(this));
+  }
+
+  // Функция фильтрации героев и удаления того, который переместился
+  filterTeam(person) {
+    let result;
+    if (person.character.isGoodCharacter) {
+      result = this.gameState.playerTeam.filter((elem) => elem.position !== person.position);
+    } else {
+      result = this.gameState.opponentTeam.filter((elem) => elem.position !== person.position);
+    }
+    return result;
+  }
+
+  // Функция завершения хода игрока
+  endMove() {
+    this.gamePlay.cells.forEach((cell) => {
+      cell.classList.remove(...Array.from(cell.classList)
+        .filter((item) => item.startsWith('selected')));
+    });
+    this.gamePlay.redrawPositions([...this.gameState.playerTeam, ...this.gameState.opponentTeam]);
+    if (this.gameState.playerMove) {
+      this.gameState.playerMove = false;
+    } else {
+      this.gameState.playerMove = false;
+    }
   }
 }

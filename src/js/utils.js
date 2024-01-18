@@ -64,3 +64,54 @@ export function calcHealthLevel(health) {
 
   return 'high';
 }
+
+/**
+ * Функция вычисления расстояния между двумя позициями по горизонтали (X) и по вертикали (Y)
+ * @firstPosition - индекс поля выделенного игрока
+ * @secondPosition - индекс поля, которое выделил игрок
+ */
+function distanceXY(firstPosition, secondPosition, boardSize) {
+  const initialCoords = Array(boardSize ** 2);
+  initialCoords.fill(0);
+  const coords = initialCoords.map((e, i) => ({ x: i % boardSize, y: Math.floor(i / boardSize) }));
+  const currentCoords = coords[firstPosition];
+  const nextCoords = coords[secondPosition];
+  const diffX = Math.abs(currentCoords.x - nextCoords.x);
+  const diffY = Math.abs(currentCoords.y - nextCoords.y);
+  return {
+    diffX,
+    diffY,
+  };
+}
+
+/**
+ * Функция проверки возможности двигаться персонажу в указанную клетку относительно его положения
+ * @curPosition - индекс поля текущей позиции персонажа
+ * @nextPosition - индекс поля позиции, куда планируется переместить персонажа
+ * @moveCell - на сколько клеток может двигаться персонаж
+ */
+
+export function possibleMove(curPosition, nextPosition, moveCell, boardSize = 8) {
+  const diffCoords = distanceXY(curPosition, nextPosition, boardSize);
+  if (diffCoords.diffX <= moveCell && diffCoords.diffY <= moveCell) {
+    if (diffCoords.diffY === 0 || diffCoords.diffX === 0
+      || diffCoords.diffX === diffCoords.diffY) {
+      // перемещение по горизонтали - diffCoords.diffY === 0
+      // перемещение по вертикали - diffCoords.diffX === 0
+      // перемещение по диагоналям - diffCoords.diffX === diffCoords.diffY
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Функция проверки возможности атаковать персонажа в указанной клетке относительно его положения
+ * @curPosition - индекс поля текущей позиции персонажа
+ * @nextPosition - индекс поля позиции, где планируется произвести атаку персонажа
+ * @attackCell - на сколько клеток может атаковать персонаж
+ */
+export function possibleAttack(curPosition, nextPosition, attackCell, boardSize = 8) {
+  const diffCoords = distanceXY(curPosition, nextPosition, boardSize);
+  return diffCoords.diffX <= attackCell && diffCoords.diffY <= attackCell;
+}
