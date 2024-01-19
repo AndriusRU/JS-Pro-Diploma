@@ -24,4 +24,16 @@ export default class Character {
     this.type = type;
     // TODO: выбросите исключение, если кто-то использует "new Character()" - DONE
   }
+
+  damage(points) {
+    if (this.health > 0) {
+      if (this.health <= points) {
+        this.health = 0;
+      } else {
+        this.health -= points;
+      }
+    } else {
+      this.health = 0;
+    }
+  }
 }

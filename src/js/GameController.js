@@ -7,6 +7,7 @@ import GameState from './GameState';
 import GamePlay from './GamePlay';
 import cursors from './cursors';
 import { possibleAttack, possibleMove } from './utils';
+import Character from './Character';
 
 export default class GameController {
   constructor(gamePlay, stateService) {
@@ -59,6 +60,16 @@ export default class GameController {
           this.gameState.playerTeam = [...this.gameState.playerTeam, this.gameState.selectedCharacter];
           this.gameState.selectedCharacter.position = index;
           this.endMove();
+        }
+      }
+
+      // Если можем атаковать персонажа с противоположной команды
+      if (this.gameState.selectedCharacter && isCharacter) {
+        const attackDistance = this.gameState.selectedCharacter.character.attackCell;
+        const positionCharacter = this.gameState.selectedCharacter.position;
+        const posAttack = possibleAttack(positionCharacter, index, attackDistance);
+        if (posAttack && positionCharacter !== index) {
+          this.attackCharacter(this.gameState.selectedCharacter, person);
         }
       }
     }
@@ -147,7 +158,44 @@ export default class GameController {
     if (this.gameState.playerMove) {
       this.gameState.playerMove = false;
     } else {
-      this.gameState.playerMove = false;
+      this.gameState.playerMove = true;
     }
+    // console.log('Move?', this.gameState.playerMove);
+  }
+
+  // Функция расчета атаки персонажей
+  attackCharacter(attacker, defender) {
+    if (!attacker || !defender) {
+      return;
+    }
+
+    const attackPoints = Math.floor(Math.max(
+      attacker.character.attack - defender.character.defence,
+      attacker.character.attack * 0.1,
+    ));
+
+    if (defender.character.isGoodCharacter) {
+      this.gameState.playerTeam = this.filterTeam(defender);
+    } else {
+      this.gameState.opponentTeam = this.filterTeam(defender);
+    }
+
+    defender.character.damage(attackPoints);
+
+    if (defender.character.health > 0) {
+      if (defender.character.isGoodCharacter) {
+        this.gameState.playerTeam = [...this.gameState.playerTeam, defender];
+      } else {
+        this.gameState.playerTeam = [...this.gameState.playerTeam, defender];
+      }
+    }
+
+    this.gamePlay.showDamage(defender.position, attackPoints)
+      .then(() => {
+        this.clickOnCell();
+      })
+      .then(() => {
+        this.endMove();
+      });
   }
 }
